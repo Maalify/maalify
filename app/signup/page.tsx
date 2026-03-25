@@ -2,21 +2,64 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '@/context/AuthContext'
 
 export default function Signup() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
+  const router = useRouter()
+  const { signUp } = useAuth()
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError('')
+
     if (password !== confirmPassword) {
-      alert('Passwords do not match')
+      setError('Passwords do not match')
       return
     }
-    // TODO: Implement signup with Supabase
-    console.log('Signup:', { name, email, password })
+
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters')
+      return
+    }
+
+    setLoading(true)
+
+    const { error } = await signUp(email, password, name)
+    
+    if (error) {
+      setError(error.message)
+      setLoading(false)
+    } else {
+      setSuccess(true)
+    }
+  }
+
+  if (success) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
+        <div className="max-w-md w-full bg-white rounded-xl shadow-sm p-8 text-center">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-3xl">✓</span>
+          </div>
+          <h2 className="text-2xl font-semibold text-gray-900 mb-2">Check your email</h2>
+          <p className="text-gray-600 mb-6">
+            We've sent a confirmation link to <strong>{email}</strong>. 
+            Click the link to activate your account.
+          </p>
+          <Link href="/login" className="text-primary-600 hover:underline font-medium">
+            Back to login
+          </Link>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -33,6 +76,12 @@ export default function Signup() {
             Start managing your finances today
           </p>
         </div>
+
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm">
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
@@ -111,9 +160,10 @@ export default function Signup() {
 
           <button
             type="submit"
-            className="w-full bg-primary-600 text-white py-2 px-4 rounded-lg hover:bg-primary-700 font-medium"
+            disabled={loading}
+            className="w-full bg-primary-600 text-white py-2 px-4 rounded-lg hover:bg-primary-700 font-medium disabled:opacity-50"
           >
-            Create Account
+            {loading ? 'Creating account...' : 'Create Account'}
           </button>
         </form>
 
