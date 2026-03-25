@@ -4,14 +4,14 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { supabase } from '@/lib/supabase'
+import Sidebar from '@/components/Sidebar'
 import { 
   Wallet, 
   TrendingUp, 
   TrendingDown, 
   PiggyBank,
   Plus,
-  ArrowRight,
-  LogOut
+  ArrowRight
 } from 'lucide-react'
 
 type Account = {
@@ -32,7 +32,7 @@ type Transaction = {
 }
 
 export default function Dashboard() {
-  const { user, loading, signOut } = useAuth()
+  const { user, loading } = useAuth()
   const router = useRouter()
   const [accounts, setAccounts] = useState<Account[]>([])
   const [transactions, setTransactions] = useState<Transaction[]>([])
@@ -88,11 +88,6 @@ export default function Dashboard() {
     }
   }
 
-  const handleSignOut = async () => {
-    await signOut()
-    router.push('/login')
-  }
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -106,27 +101,16 @@ export default function Dashboard() {
   const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'User'
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Welcome back, {userName}!</h1>
-              <p className="text-gray-600">Here's your financial overview</p>
-            </div>
-            <button
-              onClick={handleSignOut}
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
-            >
-              <LogOut className="w-5 h-5" />
-              Sign Out
-            </button>
-          </div>
+    <div className="min-h-screen bg-gray-50 flex">
+      <Sidebar />
+      
+      <main className="flex-1 ml-64 p-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-gray-900">Welcome back, {userName}!</h1>
+          <p className="text-gray-600">Here's your financial overview</p>
         </div>
-      </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-xl shadow-sm p-6">
