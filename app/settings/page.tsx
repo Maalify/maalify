@@ -1,185 +1,229 @@
 'use client'
 
-import Link from 'next/link'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '@/context/AuthContext'
+import { supabase } from '@/lib/supabase'
+import Sidebar from '@/components/Sidebar'
+import { 
+  User,
+  Mail,
+  Lock,
+  Bell,
+  Palette,
+  Globe,
+  Save,
+  Check
+} from 'lucide-react'
 
 export default function Settings() {
-  const [name, setName] = useState('Barry Goertz')
-  const [email, setEmail] = useState('barry@example.com')
-  const [currency, setCurrency] = useState('AED')
-  const [notifications, setNotifications] = useState(true)
-  const [weeklyReport, setWeeklyReport] = useState(true)
-  const [budgetAlerts, setBudgetAlerts] = useState(true)
+  const { user, loading } = useAuth()
+  const router = useRouter()
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    currency: 'AED',
+    language: 'en',
+    notifications: true,
+    darkMode: false
+  })
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login')
+    }
+  }, [user, loading, router])
+
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        fullName: user.user_metadata?.full_name || '',
+        email: user.email || ''
+      }))
+    }
+  }, [user])
+
+  const handleSave = async () => {
+    setSaving(true)
+    
+    // Update user metadata
+    const { error } = await supabase.auth.updateUser({
+      data: { 
+        full_name: formData.fullName,
+        currency: formData.currency,
+        language: formData.language,
+        notifications: formData.notifications
+      }
+    })
+
+    setSaving(false)
+    if (!error) {
+      setSaved(true)
+      setTimeout(() => setSaved(false), 3000)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+      </div>
+    )
+  }
+
+  if (!user) return null
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Sidebar */}
-      <aside className="fixed left-0 top-0 h-full w-64 bg-white border-r border-gray-200 p-6">
-        <Link href="/" className="text-2xl font-bold text-primary-600">Maalify</Link>
-        <nav className="mt-8 space-y-2">
-          <Link href="/dashboard" className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg">
-            <span className="mr-3">📊</span> Dashboard
-          </Link>
-          <Link href="/accounts" className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg">
-            <span className="mr-3">🏦</span> Accounts
-          </Link>
-          <Link href="/transactions" className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg">
-            <span className="mr-3">💳</span> Transactions
-          </Link>
-          <Link href="/budgets" className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg">
-            <span className="mr-3">🎯</span> Budgets
-          </Link>
-          <Link href="/analytics" className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg">
-            <span className="mr-3">📈</span> Analytics
-          </Link>
-          <Link href="/settings" className="flex items-center px-4 py-2 bg-primary-50 text-primary-600 rounded-lg">
-            <span className="mr-3">⚙️</span> Settings
-          </Link>
-        </nav>
-        <div className="absolute bottom-6 left-6 right-6">
-          <Link href="/connect-bank" className="flex items-center justify-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">
-            + Connect Bank
-          </Link>
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <main className="ml-64 p-8">
+    <div className="min-h-screen bg-gray-50 flex">
+      <Sidebar />
+      
+      <main className="flex-1 ml-64 p-8">
+        {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-semibold text-gray-900">Settings</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
           <p className="text-gray-600">Manage your account preferences</p>
         </div>
 
         <div className="max-w-2xl space-y-6">
           {/* Profile Section */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
-            <h2 className="text-lg font-semibold mb-4">Profile</h2>
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <User className="w-5 h-5" />
+              Profile
+            </h2>
+            
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
                 <input
                   type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  value={formData.fullName}
+                  onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                 />
               </div>
+              
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                />
+                <div className="flex items-center gap-2">
+                  <Mail className="w-5 h-5 text-gray-400" />
+                  <input
+                    type="email"
+                    value={formData.email}
+                    disabled
+                    className="flex-1 px-4 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-500"
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
               </div>
-              <button className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700">
-                Save Changes
-              </button>
             </div>
           </div>
 
           {/* Preferences Section */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
-            <h2 className="text-lg font-semibold mb-4">Preferences</h2>
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <Globe className="w-5 h-5" />
+              Preferences
+            </h2>
+            
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Default Currency</label>
                 <select
-                  value={currency}
-                  onChange={(e) => setCurrency(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  value={formData.currency}
+                  onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                 >
                   <option value="AED">AED - UAE Dirham</option>
                   <option value="USD">USD - US Dollar</option>
                   <option value="EUR">EUR - Euro</option>
                   <option value="GBP">GBP - British Pound</option>
+                  <option value="SAR">SAR - Saudi Riyal</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Language</label>
+                <select
+                  value={formData.language}
+                  onChange={(e) => setFormData({ ...formData, language: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                >
+                  <option value="en">English</option>
+                  <option value="ar">العربية (Arabic)</option>
                 </select>
               </div>
             </div>
           </div>
 
           {/* Notifications Section */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
-            <h2 className="text-lg font-semibold mb-4">Notifications</h2>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium text-gray-900">Push Notifications</p>
-                  <p className="text-sm text-gray-500">Receive alerts on your device</p>
-                </div>
-                <button
-                  onClick={() => setNotifications(!notifications)}
-                  className={`w-12 h-6 rounded-full transition-colors ${notifications ? 'bg-primary-600' : 'bg-gray-300'}`}
-                >
-                  <div className={`w-5 h-5 bg-white rounded-full shadow transform transition-transform ${notifications ? 'translate-x-6' : 'translate-x-1'}`} />
-                </button>
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <Bell className="w-5 h-5" />
+              Notifications
+            </h2>
+            
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium text-gray-900">Email Notifications</p>
+                <p className="text-sm text-gray-500">Receive budget alerts and weekly summaries</p>
               </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium text-gray-900">Weekly Report</p>
-                  <p className="text-sm text-gray-500">Get a summary every Sunday</p>
-                </div>
-                <button
-                  onClick={() => setWeeklyReport(!weeklyReport)}
-                  className={`w-12 h-6 rounded-full transition-colors ${weeklyReport ? 'bg-primary-600' : 'bg-gray-300'}`}
-                >
-                  <div className={`w-5 h-5 bg-white rounded-full shadow transform transition-transform ${weeklyReport ? 'translate-x-6' : 'translate-x-1'}`} />
-                </button>
-              </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium text-gray-900">Budget Alerts</p>
-                  <p className="text-sm text-gray-500">Alert when nearing budget limits</p>
-                </div>
-                <button
-                  onClick={() => setBudgetAlerts(!budgetAlerts)}
-                  className={`w-12 h-6 rounded-full transition-colors ${budgetAlerts ? 'bg-primary-600' : 'bg-gray-300'}`}
-                >
-                  <div className={`w-5 h-5 bg-white rounded-full shadow transform transition-transform ${budgetAlerts ? 'translate-x-6' : 'translate-x-1'}`} />
-                </button>
-              </div>
+              <button
+                onClick={() => setFormData({ ...formData, notifications: !formData.notifications })}
+                className={`relative w-12 h-6 rounded-full transition-colors ${
+                  formData.notifications ? 'bg-emerald-600' : 'bg-gray-300'
+                }`}
+              >
+                <span
+                  className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                    formData.notifications ? 'left-7' : 'left-1'
+                  }`}
+                />
+              </button>
             </div>
           </div>
 
-          {/* Connected Banks Section */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
-            <h2 className="text-lg font-semibold mb-4">Connected Banks</h2>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center">
-                  <span className="text-2xl mr-3">🏦</span>
-                  <div>
-                    <p className="font-medium">Emirates NBD</p>
-                    <p className="text-sm text-gray-500">Connected Mar 15, 2026</p>
-                  </div>
-                </div>
-                <button className="text-red-600 text-sm hover:underline">Disconnect</button>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center">
-                  <span className="text-2xl mr-3">🏦</span>
-                  <div>
-                    <p className="font-medium">First Abu Dhabi Bank</p>
-                    <p className="text-sm text-gray-500">Connected Mar 18, 2026</p>
-                  </div>
-                </div>
-                <button className="text-red-600 text-sm hover:underline">Disconnect</button>
-              </div>
-            </div>
-            <Link href="/connect-bank" className="mt-4 inline-block text-primary-600 hover:underline">
-              + Connect another bank
-            </Link>
-          </div>
-
-          {/* Danger Zone */}
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-red-200">
-            <h2 className="text-lg font-semibold text-red-600 mb-4">Danger Zone</h2>
-            <p className="text-gray-600 mb-4">Once you delete your account, there is no going back. Please be certain.</p>
-            <button className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
-              Delete Account
+          {/* Security Section */}
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <Lock className="w-5 h-5" />
+              Security
+            </h2>
+            
+            <button
+              onClick={() => {
+                // In a real app, this would trigger a password reset email
+                alert('Password reset email would be sent to ' + formData.email)
+              }}
+              className="text-emerald-600 hover:text-emerald-700 font-medium"
+            >
+              Change Password
             </button>
           </div>
+
+          {/* Save Button */}
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="w-full flex items-center justify-center gap-2 bg-emerald-600 text-white px-6 py-3 rounded-lg hover:bg-emerald-700 disabled:opacity-50"
+          >
+            {saving ? (
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+            ) : saved ? (
+              <>
+                <Check className="w-5 h-5" />
+                Saved!
+              </>
+            ) : (
+              <>
+                <Save className="w-5 h-5" />
+                Save Changes
+              </>
+            )}
+          </button>
         </div>
       </main>
     </div>
