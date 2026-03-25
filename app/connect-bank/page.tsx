@@ -113,9 +113,10 @@ export default function ConnectBank() {
   return (
     <div className="min-h-screen bg-gray-50 flex">
       <Script 
-        src="https://cdn.leantech.me/link/sdk/web/latest/lean-link.min.js"
-        onLoad={() => setLeanReady(true)}
-      />
+  src="https://cdn.leantech.me/link/loader/prod/ae/latest/lean-link-loader.min.js"
+  onLoad={() => setLeanReady(true)}
+  onError={() => console.error('Failed to load Lean SDK')}
+/>
       
       <Sidebar />
       
