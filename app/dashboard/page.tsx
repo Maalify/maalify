@@ -1,8 +1,35 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
+import { useAuth } from '@/context/AuthContext'
 
 export default function Dashboard() {
+  const { user, loading, signOut } = useAuth()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login')
+    }
+  }, [user, loading, router])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!user) return null
+
+  const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'User'
+
   // Mock data - will be replaced with real data from Supabase
   const totalBalance = 45230.50
   const income = 12000
@@ -16,6 +43,11 @@ export default function Dashboard() {
     { id: 4, name: 'DEWA', amount: -450, category: 'Utilities', date: 'Feb 28' },
     { id: 5, name: 'Amazon', amount: -189, category: 'Shopping', date: 'Feb 27' },
   ]
+
+  const handleSignOut = async () => {
+    await signOut()
+    router.push('/')
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -46,17 +78,23 @@ export default function Dashboard() {
           </Link>
         </nav>
 
-        <div className="absolute bottom-6 left-6 right-6">
+        <div className="absolute bottom-6 left-6 right-6 space-y-2">
           <Link href="/connect-bank" className="flex items-center justify-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">
             + Connect Bank
           </Link>
+          <button 
+            onClick={handleSignOut}
+            className="w-full flex items-center justify-center px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+          >
+            Sign Out
+          </button>
         </div>
       </aside>
 
       {/* Main Content */}
       <main className="ml-64 p-8">
         <div className="mb-8">
-          <h1 className="text-2xl font-semibold text-gray-900">Good evening, Barry</h1>
+          <h1 className="text-2xl font-semibold text-gray-900">Good morning, {userName}</h1>
           <p className="text-gray-600">Here's your financial overview</p>
         </div>
 
