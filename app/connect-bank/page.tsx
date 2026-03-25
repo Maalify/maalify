@@ -1,140 +1,146 @@
 'use client'
 
-import Link from 'next/link'
-import { useState } from 'react'
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '@/context/AuthContext'
+import Sidebar from '@/components/Sidebar'
+import { 
+  Building2,
+  Shield,
+  Zap,
+  RefreshCw,
+  ChevronRight,
+  Lock
+} from 'lucide-react'
+
+const banks = [
+  { name: 'Emirates NBD', logo: '🏦', status: 'available' },
+  { name: 'ADCB', logo: '🏛️', status: 'available' },
+  { name: 'FAB', logo: '🏢', status: 'available' },
+  { name: 'Mashreq', logo: '🏦', status: 'available' },
+  { name: 'RAKBANK', logo: '🏛️', status: 'coming_soon' },
+  { name: 'Dubai Islamic Bank', logo: '🏢', status: 'coming_soon' },
+]
 
 export default function ConnectBank() {
-  const [selectedBank, setSelectedBank] = useState<string | null>(null)
-  const [connecting, setConnecting] = useState(false)
+  const { user, loading } = useAuth()
+  const router = useRouter()
 
-  const banks = [
-    { id: 'enbd', name: 'Emirates NBD', logo: '🏦' },
-    { id: 'fab', name: 'First Abu Dhabi Bank', logo: '🏦' },
-    { id: 'adcb', name: 'ADCB', logo: '🏦' },
-    { id: 'mashreq', name: 'Mashreq Bank', logo: '🏦' },
-    { id: 'dib', name: 'Dubai Islamic Bank', logo: '🏦' },
-    { id: 'rakbank', name: 'RAKBANK', logo: '🏦' },
-    { id: 'cbd', name: 'Commercial Bank of Dubai', logo: '🏦' },
-    { id: 'ajman', name: 'Ajman Bank', logo: '🏦' },
-  ]
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login')
+    }
+  }, [user, loading, router])
 
-  const handleConnect = () => {
-    if (!selectedBank) return
-    setConnecting(true)
-    // TODO: Implement Lean Technologies SDK integration
-    setTimeout(() => {
-      alert('Bank connection will be implemented with Lean Technologies in Stage 3')
-      setConnecting(false)
-    }, 2000)
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+      </div>
+    )
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Sidebar */}
-      <aside className="fixed left-0 top-0 h-full w-64 bg-white border-r border-gray-200 p-6">
-        <Link href="/" className="text-2xl font-bold text-primary-600">Maalify</Link>
-        <nav className="mt-8 space-y-2">
-          <Link href="/dashboard" className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg">
-            <span className="mr-3">📊</span> Dashboard
-          </Link>
-          <Link href="/accounts" className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg">
-            <span className="mr-3">🏦</span> Accounts
-          </Link>
-          <Link href="/transactions" className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg">
-            <span className="mr-3">💳</span> Transactions
-          </Link>
-          <Link href="/budgets" className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg">
-            <span className="mr-3">🎯</span> Budgets
-          </Link>
-          <Link href="/analytics" className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg">
-            <span className="mr-3">📈</span> Analytics
-          </Link>
-          <Link href="/settings" className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg">
-            <span className="mr-3">⚙️</span> Settings
-          </Link>
-        </nav>
-      </aside>
+  if (!user) return null
 
-      {/* Main Content */}
-      <main className="ml-64 p-8">
-        <div className="max-w-2xl mx-auto">
-          <Link href="/dashboard" className="text-primary-600 hover:underline mb-4 inline-block">
-            ← Back to Dashboard
-          </Link>
-          
-          <div className="bg-white rounded-xl p-8 shadow-sm">
-            <div className="text-center mb-8">
-              <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-3xl">🔗</span>
-              </div>
-              <h1 className="text-2xl font-semibold text-gray-900">Connect Your Bank</h1>
-              <p className="text-gray-600 mt-2">
-                Securely link your UAE bank account using Lean Technologies
+  return (
+    <div className="min-h-screen bg-gray-50 flex">
+      <Sidebar />
+      
+      <main className="flex-1 ml-64 p-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-gray-900">Connect Your Bank</h1>
+          <p className="text-gray-600">Securely link your UAE bank accounts for automatic transaction sync</p>
+        </div>
+
+        {/* Features */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <div className="bg-emerald-100 w-12 h-12 rounded-full flex items-center justify-center mb-4">
+              <Shield className="w-6 h-6 text-emerald-600" />
+            </div>
+            <h3 className="font-semibold text-gray-900 mb-2">Bank-Level Security</h3>
+            <p className="text-sm text-gray-600">256-bit encryption and read-only access. We can never move your money.</p>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <div className="bg-emerald-100 w-12 h-12 rounded-full flex items-center justify-center mb-4">
+              <Zap className="w-6 h-6 text-emerald-600" />
+            </div>
+            <h3 className="font-semibold text-gray-900 mb-2">Instant Sync</h3>
+            <p className="text-sm text-gray-600">Transactions appear automatically within minutes of occurring.</p>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <div className="bg-emerald-100 w-12 h-12 rounded-full flex items-center justify-center mb-4">
+              <RefreshCw className="w-6 h-6 text-emerald-600" />
+            </div>
+            <h3 className="font-semibold text-gray-900 mb-2">Auto-Categorize</h3>
+            <p className="text-sm text-gray-600">AI automatically categorizes your transactions for easy tracking.</p>
+          </div>
+        </div>
+
+        {/* Banks List */}
+        <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <Building2 className="w-5 h-5" />
+            Select Your Bank
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {banks.map((bank) => (
+              <button
+                key={bank.name}
+                disabled={bank.status === 'coming_soon'}
+                onClick={() => {
+                  alert('Bank connection will be available in Stage 3 (Lean Technologies integration)')
+                }}
+                className={`flex items-center justify-between p-4 rounded-lg border-2 transition-colors ${
+                  bank.status === 'coming_soon'
+                    ? 'border-gray-200 bg-gray-50 cursor-not-allowed'
+                    : 'border-gray-200 hover:border-emerald-500 hover:bg-emerald-50'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">{bank.logo}</span>
+                  <span className={`font-medium ${bank.status === 'coming_soon' ? 'text-gray-400' : 'text-gray-900'}`}>
+                    {bank.name}
+                  </span>
+                </div>
+                {bank.status === 'coming_soon' ? (
+                  <span className="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded-full">Coming Soon</span>
+                ) : (
+                  <ChevronRight className="w-5 h-5 text-gray-400" />
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Security Notice */}
+        <div className="bg-gradient-to-r from-gray-800 to-gray-900 rounded-xl p-6 text-white">
+          <div className="flex items-start gap-4">
+            <div className="bg-white/10 p-3 rounded-full">
+              <Lock className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="font-semibold mb-2">Your Security is Our Priority</h3>
+              <p className="text-gray-300 text-sm">
+                Maalify uses Lean Technologies, a Central Bank of UAE licensed Open Banking provider. 
+                Your credentials are never stored on our servers. We only receive read-only access to 
+                your transaction history.
               </p>
             </div>
-
-            {/* Security Badge */}
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-              <div className="flex items-center">
-                <span className="text-2xl mr-3">🔒</span>
-                <div>
-                  <p className="font-medium text-green-800">Bank-level Security</p>
-                  <p className="text-sm text-green-600">256-bit encryption • Read-only access • CBUAE regulated</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Bank Selection */}
-            <h2 className="font-semibold text-gray-900 mb-4">Select your bank</h2>
-            <div className="grid grid-cols-2 gap-3 mb-6">
-              {banks.map((bank) => (
-                <button
-                  key={bank.id}
-                  onClick={() => setSelectedBank(bank.id)}
-                  className={`p-4 rounded-lg border-2 text-left transition-all ${
-                    selectedBank === bank.id
-                      ? 'border-primary-600 bg-primary-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <div className="flex items-center">
-                    <span className="text-2xl mr-3">{bank.logo}</span>
-                    <span className="font-medium text-gray-900">{bank.name}</span>
-                  </div>
-                </button>
-              ))}
-            </div>
-
-            {/* Connect Button */}
-            <button
-              onClick={handleConnect}
-              disabled={!selectedBank || connecting}
-              className={`w-full py-3 rounded-lg font-semibold transition-all ${
-                selectedBank && !connecting
-                  ? 'bg-primary-600 text-white hover:bg-primary-700'
-                  : 'bg-gray-200 text-gray-500 cursor-not-allowed'
-              }`}
-            >
-              {connecting ? (
-                <span className="flex items-center justify-center">
-                  <svg className="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                  </svg>
-                  Connecting...
-                </span>
-              ) : (
-                'Connect Bank'
-              )}
-            </button>
-
-            <p className="text-center text-sm text-gray-500 mt-4">
-              By connecting, you agree to our{' '}
-              <Link href="/terms" className="text-primary-600 hover:underline">Terms</Link>
-              {' '}and{' '}
-              <Link href="/privacy" className="text-primary-600 hover:underline">Privacy Policy</Link>
-            </p>
           </div>
+        </div>
+
+        {/* Coming Soon Notice */}
+        <div className="mt-8 bg-amber-50 border border-amber-200 rounded-xl p-6">
+          <h3 className="font-semibold text-amber-800 mb-2">🚧 Stage 3 Feature</h3>
+          <p className="text-amber-700 text-sm">
+            Bank connection via Lean Technologies will be implemented in Stage 3. 
+            For now, you can manually add accounts and transactions.
+          </p>
         </div>
       </main>
     </div>
